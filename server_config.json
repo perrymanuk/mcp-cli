@@ -23,7 +23,7 @@
       "models": {
         "anthropic": {
           "modelId": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "arn": "arn:aws:bedrock:eu-central-1:890672996299:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+          "arn": "arn:aws:bedrock:eu-central-1:000000000000:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
         }
       }
     }
