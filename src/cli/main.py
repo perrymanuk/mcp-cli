@@ -124,6 +124,7 @@ def common_options(
     provider: str = "openai",
     model: str = None,
     disable_filesystem: bool = True,
+    debug: bool = False,
 ):
     """
     MCP Command-Line Tool
@@ -139,6 +140,7 @@ def common_options(
         "config_file": config_file,
         "servers": servers,
         "user_specified": user_specified,
+        "debug": debug,
     }
     
     # Check if a subcommand was invoked.
@@ -153,6 +155,7 @@ def common_options(
             provider=provider,
             model=model,
             disable_filesystem=disable_filesystem,
+            debug=debug,
         )
         
         # Make sure any asyncio cleanup is done

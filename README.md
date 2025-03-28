@@ -5,8 +5,8 @@ This repository contains a protocol-level CLI designed to interact with a Model 
 - Protocol-level communication with the Model Context Provider.
 - Dynamic tool and resource exploration.
 - Support for multiple providers and models:
-  - Providers: OpenAI, Ollama.
-  - Default models: `gpt-4o-mini` for OpenAI, `qwen2.5-coder` for Ollama.
+  - Providers: OpenAI, Ollama, AWS Bedrock.
+  - Default models: `gpt-4o-mini` for OpenAI, `qwen2.5-coder` for Ollama, `claude-3-7-sonnet` for Bedrock.
 - Enhanced modular chat system with server-aware tools.
 - Rich command system with context-aware completions.
 - **Conversation History**:
@@ -22,6 +22,7 @@ This repository contains a protocol-level CLI designed to interact with a Model 
 - Required dependencies (see [Installation](#installation))
 - If using ollama you should have ollama installed and running.
 - If using openai you should have an api key set in your environment variables (OPENAI_API_KEY=yourkey)
+- If using AWS Bedrock, you need valid AWS credentials configured (e.g., via aws sso login)
 
 ## Installation
 1. Clone the repository:
@@ -46,10 +47,9 @@ uv sync --reinstall
 ## Command-line Arguments
 - `--server`: Specifies the server configuration to use. Required.
 - `--config-file`: (Optional) Path to the JSON configuration file. Defaults to `server_config.json`.
-- `--provider`: (Optional) Specifies the provider to use (`openai` or `ollama`). Defaults to `openai`.
-- `--model`: (Optional) Specifies the model to use. Defaults depend on the provider:
-  - `gpt-4o-mini` for OpenAI.
-  - `llama3.2` for Ollama.
+- `--provider`: (Optional) Specifies the provider to use (`openai`, `ollama`, or `bedrock`). Defaults to `openai`.
+- `--model`: (Optional) Specifies the model to use. Defaults depend on the provider.
+- `--debug`: (Optional) Enable debug mode for additional logging and troubleshooting.
 
 ## Chat Mode
 Chat mode provides a conversational interface with the LLM and is the primary way to interact with the client:
@@ -66,6 +66,10 @@ uv run mcp-cli chat --server sqlite --provider openai --model gpt-4o
 
 ```bash
 uv run mcp-cli chat --server sqlite --provider ollama --model llama3.2
+```
+
+```bash
+uv run mcp-cli chat --server sqlite --provider bedrock --model claude-3-7-sonnet
 ```
 
 ### Using Chat Mode
@@ -106,8 +110,8 @@ uv run mcp-cli chat --server sqlite --provider openai --model gpt-4o
 
 You can also change the provider and model during a chat session using the following commands:
 
-- `/provider <name>`: Change the current LLM provider (e.g., `openai`, `ollama`)
-- `/model <name>`: Change the current LLM model (e.g., `gpt-4o`, `llama3.2`)
+- `/provider <n>`: Change the current LLM provider (e.g., `openai`, `ollama`, `bedrock`)
+- `/model <n>`: Change the current LLM model (e.g., `gpt-4o`, `llama3.2`, `claude-3-7-sonnet`)
 
 ### Chat Commands
 In chat mode, you can use the following slash commands:
@@ -140,8 +144,8 @@ In chat mode, you can use the following slash commands:
 - `/cls`: Clear the screen while keeping conversation history
 - `/clear`: Clear both the screen and conversation history
 - `/interrupt`, `/stop`, or `/cancel`: Interrupt running tool execution
-- `/provider <name>`: Change the current LLM provider 
-- `/model <name>`: Change the current LLM model
+- `/provider <n>`: Change the current LLM provider 
+- `/model <n>`: Change the current LLM model
 
 ## Interactive Mode
 Interactive mode provides a command-line interface with slash commands for direct interaction with the server:
@@ -182,29 +186,43 @@ If you wish to use OpenAI models, you should:
 If you wish to use AWS Bedrock models, you should:
 
 1. Configure AWS credentials (using AWS SSO or standard AWS credential methods)
-2. Update the `server_config.json` file with Bedrock configuration
+   ```bash
+   aws sso login
+   ```
+
+2. Configure the `server_config.json` file with Bedrock settings:
+   ```json
+   "llmProviders": {
+     "bedrock": {
+       "region": "eu-central-1",
+       "models": {
+         "claude-3-haiku": {
+           "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+           "arn": "arn:aws:bedrock:eu-central-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+         }
+       }
+     }
+   }
+   ```
+
 3. Run the CLI with the Bedrock provider:
+   ```bash
+   uv run mcp-cli chat --server sqlite --provider bedrock --model claude-3-haiku
+   ```
 
-```bash
-uv run mcp-cli chat --server sqlite --provider bedrock --model claude-3-7-sonnet
-```
+### Troubleshooting Bedrock
 
-### Bedrock Configuration
-The `server_config.json` file should include a section for Bedrock models:
+If you encounter an "AccessDeniedException" error when using Bedrock, check the following:
 
-```json
-"llmProviders": {
-  "bedrock": {
-    "region": "eu-central-1",
-    "models": {
-      "claude-3-7-sonnet": {
-        "modelId": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
-        "arn": "arn:aws:bedrock:eu-central-1:000000000000:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
-      }
-    }
-  }
-}
-```
+1. Make sure you have enabled the model in your AWS Bedrock account:
+   - Go to the AWS Management Console > Amazon Bedrock > Model access
+   - Find the Claude model and request access if not already enabled
+
+2. Verify that your IAM role has the proper permissions:
+   - The role you assume via SSO needs `bedrock:InvokeModel` permissions
+
+3. Make sure your AWS SSO session is active:
+   - Run `aws sts get-caller-identity` to verify your current credentials
 
 ## Project Structure
 
@@ -227,6 +245,11 @@ src/
 │   ├── commands/             # Main CLI commands (including interactive mode)
 │   └── ...
 ├── llm/                      # LLM client and tools
+│   ├── providers/            # LLM providers
+│   │   ├── base.py           # Base LLM client interface
+│   │   ├── openai_client.py  # OpenAI provider
+│   │   ├── ollama_client.py  # Ollama provider
+│   │   └── bedrock_client.py # AWS Bedrock provider
 └── ...
 ```
 

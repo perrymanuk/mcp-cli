@@ -13,7 +13,7 @@ from cli.chat.chat_handler import handle_chat_mode
 app = typer.Typer(help="Chat commands")
 
 @app.command("run")
-async def chat_run(server_streams: list):
+async def chat_run(server_streams: list, debug: bool = False):
     """Enter chat mode."""
     provider = os.getenv("LLM_PROVIDER", "openai")
     model = os.getenv("LLM_MODEL", "gpt-4o-mini")
@@ -27,7 +27,7 @@ async def chat_run(server_streams: list):
     
     try:
         # Create a task for the chat handler
-        chat_task = asyncio.create_task(handle_chat_mode(server_streams, provider, model))
+        chat_task = asyncio.create_task(handle_chat_mode(server_streams, provider, model, debug=debug))
         
         # Await the task with proper exception handling
         await chat_task

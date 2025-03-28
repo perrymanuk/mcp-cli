@@ -11,7 +11,7 @@ from mcp.messages.initialize.send_messages import send_initialize
 # cli imports
 from cli.config import load_config
 
-def run_command(command_func, config_file, server_names, user_specified=None):
+def run_command(command_func, config_file, server_names, user_specified=None, **kwargs):
     """Run a command with the specified servers by managing server connections."""
     async def _run_clients():
         server_streams = []
@@ -57,7 +57,10 @@ def run_command(command_func, config_file, server_names, user_specified=None):
                 
                 if is_interactive or is_chat:
                     try:
-                        result = await command_func(server_streams, server_info=server_info)
+                        if is_chat:
+                            result = await command_func(server_streams, **kwargs)
+                        else:
+                            result = await command_func(server_streams, server_info=server_info)
                     except TypeError:
                         result = await command_func(server_streams)
                     if result is True:

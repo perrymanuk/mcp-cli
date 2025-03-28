@@ -2,14 +2,18 @@
   "mcpServers": {
     "sqlite": {
       "command": "uvx",
-      "args": ["mcp-server-sqlite", "--db-path", "test.db"]
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "test.db"
+      ]
     },
     "filesystem": {
       "command": "npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/Users/USERNAME/git/github/mcp-cli"
+        "/Users/USERNAME"
       ]
     }
   },
@@ -17,9 +21,9 @@
     "bedrock": {
       "region": "eu-central-1",
       "models": {
-        "claude-3-7-sonnet": {
+        "anthropic": {
           "modelId": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "arn": "arn:aws:bedrock:eu-central-1:000000000000:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+          "arn": "arn:aws:bedrock:eu-central-1:890672996299:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
         }
       }
     }

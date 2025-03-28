@@ -12,10 +12,11 @@ from cli.chat.system_prompt import generate_system_prompt
 class ChatContext:
     """Class to manage the chat context and state."""
     
-    def __init__(self, server_streams, provider="openai", model="gpt-4o-mini"):
+    def __init__(self, server_streams, provider="openai", model="gpt-4o-mini", debug=False):
         self.server_streams = server_streams
         self.provider = provider
         self.model = model
+        self.debug = debug
         self.server_info = []
         self.tools = []
         self.openai_tools = []
@@ -71,7 +72,7 @@ class ChatContext:
         self.openai_tools = convert_to_openai_tools(self.tools)
         
         # Initialize the LLM client
-        self.client = get_llm_client(provider=self.provider, model=self.model)
+        self.client = get_llm_client(provider=self.provider, model=self.model, debug=self.debug)
         self.conversation_history = [{"role": "system", "content": system_prompt}]
         
         return True
